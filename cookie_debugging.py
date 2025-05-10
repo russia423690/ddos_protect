@@ -8,31 +8,21 @@ from datetime import datetime, timedelta
 from config import COOKIE_SECRET, COOKIE_MAX_AGE
 
 def debug_cookie_values():
-    """Проверяет правильность создания и проверки куки безопасности"""
     print("=== Отладка механизма куки безопасности ===")
     
     # Тестовые данные
     client_ip = "172.31.128.77"
     user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    
-    # Генерация токена
     token = generate_test_token(client_ip, user_agent)
     print(f"Сгенерированный токен: {token}")
-    
-    # Проверка токена
     is_valid = verify_test_token(token, client_ip, user_agent)
     print(f"Результат проверки токена: {is_valid}")
-    
-    # Проверка с другим IP
     is_valid_wrong_ip = verify_test_token(token, "1.2.3.4", user_agent)
     print(f"Проверка с неверным IP: {is_valid_wrong_ip} (должно быть False)")
-    
-    # Проверка с другим User-Agent
     is_valid_wrong_ua = verify_test_token(token, client_ip, "Different User Agent")
     print(f"Проверка с неверным User-Agent: {is_valid_wrong_ua} (должно быть False)")
 
 def generate_test_token(client_ip: str, user_agent: str = "") -> str:
-    """Тестовая функция для генерации токена безопасности"""
     now = datetime.utcnow()
     expires = now + timedelta(seconds=COOKIE_MAX_AGE)
     expires_ts = int(expires.timestamp())
