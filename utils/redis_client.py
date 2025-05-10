@@ -3,17 +3,12 @@ import redis
 import logging
 from typing import Optional, Any, Dict, List, Union
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Get Redis URL from environment variable
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 class RedisClient:
-    """
-    Redis client wrapper for handling connection and providing utility methods
-    for DDoS protection and rate limiting.
-    """
+
     
     def __init__(self):
         self.redis = None
@@ -66,15 +61,12 @@ class RedisClient:
             return None
     
     def increment(self, key: str, amount: int = 1, expiry: Optional[int] = None) -> Optional[int]:
-        """Increment a key and optionally set expiry if the key is new"""
         if not self.is_connected():
             return None
             
         try:
-            # Increment the key
             result = self.redis.incr(key, amount)
             
-            # If this is a new key (value is 'amount') and expiry is provided, set expiry
             if result == amount and expiry:
                 self.redis.expire(key, expiry)
                 
@@ -106,30 +98,22 @@ class RedisClient:
             return False
     
     def set_rate_limit(self, key_prefix: str, identifier: str, limit: int, window: int) -> Dict[str, int]:
-        """
-        Implement rate limiting logic using Redis
-        Returns a dict with current count, limit, and remaining
-        """
         if not self.is_connected():
             return {"count": 0, "limit": limit, "remaining": limit, "reset": window}
             
         key = f"{key_prefix}:{identifier}"
         
         try:
-            # Get current count
             count = self.redis.get(key)
             
             if count is None:
-                # First request in the window
                 self.redis.setex(key, window, 1)
                 count = 1
             else:
-                # Increment the counter
                 count = int(count)
                 self.redis.incr(key)
                 count += 1
             
-            # Get TTL for reset time
             ttl = self.redis.ttl(key)
             reset = max(0, ttl)
             
@@ -144,7 +128,6 @@ class RedisClient:
             return {"count": 0, "limit": limit, "remaining": limit, "reset": window}
     
     def add_to_ip_blacklist(self, ip_address: str, reason: str, duration: int) -> bool:
-        """Add an IP to the blacklist with expiry"""
         if not self.is_connected():
             return False
             
@@ -179,5 +162,4 @@ class RedisClient:
             logger.error(f"Redis blacklist reason error: {e}")
             return None
 
-# Create singleton instance
 redis_client = RedisClient()
