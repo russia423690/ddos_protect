@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка безопасности - Система защиты от DDoS</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e54c8;
+            --secondary-color: #8f94fb;
+            --danger-color: #ff416c;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #f5f5f5;
+            --border-color: #333;
+            --highlight-color: #ff416c;
+        }
+        
+        body {
+            background: var(--dark-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(140, 58, 255, 0.2);
+            animation: float 8s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.8; }
+            25% { transform: translateY(-20px) translateX(10px) rotate(90deg); opacity: 0.6; }
+            50% { transform: translateY(-40px) translateX(20px) rotate(180deg); opacity: 0.4; }
+            75% { transform: translateY(-20px) translateX(10px) rotate(270deg); opacity: 0.6; }
+            100% { transform: translateY(0) translateX(0) rotate(360deg); opacity: 0.8; }
+        }
+        
+        .check-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 50px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(20,20,20,0.95) 100%);
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .check-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(78,84,200,0.1) 0%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+        }
+        
+        .check-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 5px 15px rgba(78,84,200,0.4);
+        }
+        
+        .check-icon {
+            font-size: 5rem;
+            color: var(--danger-color);
+            margin-bottom: 30px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .check-message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #bbb;
+        }
+        
+        .check-progress {
+            margin: 30px 0;
+            height: 8px;
+            border-radius: 4px;
+            background-color: rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .check-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .check-status {
+            font-size: 1.1rem;
+            color: #ddd;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .security-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(78,84,200,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(78,84,200,0.2);
+            color: #ddd;
+            text-align: left;
+        }
+        
+        .security-info h4 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .security-info ul {
+            text-align: left;
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+        
+        .security-info li {
+            margin-bottom: 5px;
+        }
+        
+        .btn-continue {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            text-decoration: none;
+            display: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(78,84,200,0.4);
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        
+        .btn-continue:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(78,84,200,0.6);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .browser-detection {
+            margin-bottom: 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes typing {
+            0% { width: 0 }
+            50% { width: 100% }
+            100% { width: 0 }
+        }
+        
+        .typing {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid var(--primary-color);
+            width: 0;
+            animation: typing 4s steps(40, end) infinite;
+            margin: 0 auto;
+            max-width: fit-content;
+            color: var(--primary-color);
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+        
+        .check-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .check-item {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .check-item.active {
+            opacity: 1;
+            background-color: rgba(78,84,200,0.1);
+            border-color: rgba(78,84,200,0.3);
+        }
+        
+        .check-item.completed {
+            opacity: 1;
+            background-color: rgba(76, 209, 55, 0.1);
+            border-color: rgba(76, 209, 55, 0.3);
+        }
+        
+        .check-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .check-item .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .check-item .fa-check {
+            color: #4cd137;
+        }
+        
+        .check-item .fa-times {
+            color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Частицы в фоне -->
+    <div class="particles-container" id="particles-js"></div>
+    
+    <div class="container">
+        <div class="check-container">
+            <i class="fas fa-shield-alt check-icon"></i>
+            <h1 class="check-title">Проверка безопасности</h1>
+            <div class="typing">Анализ браузера и окружения...</div>
+            
+            <p class="check-message">
+                Пожалуйста, подождите, пока система проверит ваш браузер на соответствие требованиям безопасности.
+                Это необходимо для защиты от автоматизированных атак.
+            </p>
+            
+            <div class="check-status">Выполняется проверка...</div>
+            
+            <div class="check-progress">
+                <div class="check-progress-bar" id="progressBar"></div>
+            </div>
+            
+            <ul class="check-list">
+                <li class="check-item" id="check1">
+                    <i class="fas fa-spinner"></i>
+                    <span>Проверка User-Agent</span>
+                </li>
+                <li class="check-item" id="check2">
+                    <i class="fas fa-spinner"></i>
+                    <span>Анализ заголовков HTTP</span>
+                </li>
+                <li class="check-item" id="check3">
+                    <i class="fas fa-spinner"></i>
+                    <span>Проверка JavaScript</span>
+                </li>
+                <li class="check-item" id="check4">
+                    <i class="fas fa-spinner"></i>
+                    <span>Проверка cookie</span>
+                </li>
+                <li class="check-item" id="check5">
+                    <i class="fas fa-spinner"></i>
+                    <span>Проверка IP</span>
+                </li>
+            </ul>
+            
+            <div class="browser-detection">
+                <div><strong>User-Agent:</strong> <span id="userAgent">{{ user_agent }}</span></div>
+                <div><strong>IP:</strong> <span>{{ client_ip }}</span></div>
+                <div><strong>Идентификатор запроса:</strong> <span>{{ request_id }}</span></div>
+            </div>
+            
+            <a href="/" class="btn-continue" id="btnContinue">
+                <i class="fas fa-check-circle"></i> Продолжить
+            </a>
+            
+            <div class="security-info" style="display: none;" id="securityInfo">
+                <h4><i class="fas fa-info-circle"></i> Информация о безопасности</h4>
+                <p>
+                    Наша система обнаружила подозрительную активность или использование инструментов автоматизации.
+                    Если вы считаете, что это ошибка, пожалуйста, убедитесь, что:
+                </p>
+                <ul>
+                    <li>У вас включен JavaScript в браузере</li>
+                    <li>Вы не используете анонимайзеры или VPN с плохой репутацией</li>
+                    <li>Ваш браузер принимает и сохраняет cookie</li>
+                    <li>Вы не используете инструменты автоматизации (боты, веб-скрейперы и т.д.)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Генерация частиц для фона
+        function createParticles() {
+            const container = document.getElementById('particles-js');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Случайные размеры и позиции
+                const size = Math.random() * 50 + 10;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Вызываем создание частиц
+        createParticles();
+        
+        // Симуляция проверок
+        let progress = 0;
+        const progressBar = document.getElementById('progressBar');
+        const statusEl = document.querySelector('.check-status');
+        const continueBtn = document.getElementById('btnContinue');
+        const securityInfo = document.getElementById('securityInfo');
+        
+        // Проверка доступности JavaScript
+        function checkJavaScript() {
+            return true; // Если скрипт выполняется, JavaScript доступен
+        }
+        
+        // Проверка Cookie
+        function checkCookies() {
+            try {
+                document.cookie = "testcookie=1; SameSite=Strict; Secure";
+                const hasCookie = document.cookie.indexOf("testcookie=") !== -1;
+                document.cookie = "testcookie=1; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Strict; Secure";
+                return hasCookie;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // Функция для обновления состояния проверки
+        function updateCheckStatus(checkId, status) {
+            const checkItem = document.getElementById(checkId);
+            const icon = checkItem.querySelector('i');
+            
+            checkItem.classList.add('active');
+            
+            if (status === 'success') {
+                checkItem.classList.add('completed');
+                icon.className = 'fas fa-check';
+            } else if (status === 'failed') {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-spinner';
+            }
+        }
+        
+        // Функция для обновления прогресса
+        function updateProgress(value) {
+            progress = value;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Симуляция последовательной проверки
+        setTimeout(() => {
+            updateProgress(20);
+            updateCheckStatus('check1', 'success');
+            
+            setTimeout(() => {
+                updateProgress(40);
+                updateCheckStatus('check2', 'success');
+                
+                setTimeout(() => {
+                    updateProgress(60);
+                    const jsCheck = checkJavaScript();
+                    updateCheckStatus('check3', jsCheck ? 'success' : 'failed');
+                    
+                    setTimeout(() => {
+                        updateProgress(80);
+                        const cookieCheck = checkCookies();
+                        updateCheckStatus('check4', cookieCheck ? 'success' : 'failed');
+                        
+                        setTimeout(() => {
+                            updateProgress(100);
+                            updateCheckStatus('check5', 'success');
+                            
+                            // Проверка пройдена
+                            statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: #4cd137;"></i> Проверка завершена успешно';
+                            continueBtn.style.display = 'inline-block';
+                            
+                            // Если есть проблемы, показываем информацию о безопасности
+                            if (!cookieCheck) {
+                                securityInfo.style.display = 'block';
+                            }
+                            
+                            // После успешной проверки отправляем POST запрос для установки защищенной куки
+                            fetch('/verify-browser', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                credentials: 'same-origin'
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    // Если успешно, продолжаем
+                                    console.log('Верификация успешна, продолжаем...');
+                                    
+                                    // Автоматический редирект через 3 секунды
+                                    setTimeout(() => {
+                                        window.location.href = '/';
+                                    }, 3000);
+                                } else {
+                                    console.error('Ошибка верификации');
+                                    securityInfo.style.display = 'block';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Ошибка запроса:', error);
+                                securityInfo.style.display = 'block';
+                            });
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }, 1000);
+        
+        // Обработчик клика на кнопку продолжить
+        document.getElementById('btnContinue').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Отправляем POST запрос для установки защищенной куки
+            fetch('/verify-browser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Если успешно, переходим на главную
+                    window.location.href = '/';
+                } else {
+                    console.error('Ошибка верификации');
+                    alert('Произошла ошибка при верификации. Пожалуйста, обновите страницу и попробуйте снова.');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка запроса:', error);
+                alert('Произошла ошибка сети. Пожалуйста, проверьте интернет-соединение и попробуйте снова.');
+            });
+        });
+    </script>
+</body>
+</html>
