@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "Antiddos"
 version = "0.1.0"
-description = "Add your description here"
+description = "A antiddos"
 requires-python = ">=3.11"
 dependencies = [
     "colorama>=0.4.6",
