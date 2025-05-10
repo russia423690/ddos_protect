@@ -358,7 +358,6 @@
             animation: fadeIn 0.8s ease forwards;
         }
         
-        /* Status Badge */
         .status-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -375,7 +374,6 @@
             margin-right: 5px;
         }
         
-        /* Красивая заблокированная анимация */
         .blocked-animation {
             position: fixed;
             top: 0;
@@ -459,7 +457,6 @@
     </style>
 </head>
 <body>
-    <!-- Частицы в фоне -->
     <div class="particles-container" id="particles-js"></div>
     
     <div class="container mt-5 fade-in">
@@ -569,10 +566,8 @@
     </div>
     
     <script>
-        // Установка текущей даты
         document.getElementById('current-date').textContent = new Date().toLocaleDateString();
         
-        // Генерация частиц для фона
         function createParticles() {
             const container = document.getElementById('particles-js');
             const particleCount = 20;
@@ -581,7 +576,6 @@
                 const particle = document.createElement('div');
                 particle.classList.add('particle');
                 
-                // Случайные размеры и позиции
                 const size = Math.random() * 50 + 10;
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
@@ -597,14 +591,11 @@
             }
         }
         
-        // Вызываем создание частиц
         createParticles();
         
-        // Обработка счетчика заблокированных атак
         let counter = document.querySelector('.attacks-blocked');
         let count = parseInt(counter.textContent) || 0;
         
-        // Обновление счетчиков статистики
         function updateStats() {
             const totalRequests = document.getElementById('total-requests');
             const blockedIps = document.getElementById('blocked-ips');
@@ -612,17 +603,14 @@
             const uptime = document.getElementById('uptime');
             const counter = document.querySelector('.attacks-blocked');
             
-            // Получаем актуальную статистику с сервера
             fetch('/api/stats')
                 .then(response => response.json())
                 .then(data => {
-                    // Обновляем счетчики реальными данными
                     totalRequests.textContent = data.total_requests.toLocaleString();
                     blockedIps.textContent = data.blocked_ips;
                     avgResponse.textContent = `${data.avg_response_time} мс`;
                     uptime.textContent = data.uptime;
                     
-                    // Обновляем счетчик отраженных атак
                     counter.textContent = data.blocked_attacks;
                 })
                 .catch(error => {
@@ -630,17 +618,13 @@
                 });
         }
         
-        // Обновление статистики каждые 3 секунды
         setInterval(updateStats, 3000);
         
-        // Начальное обновление статистики
         updateStats();
         
-        // Обработчик нажатия на кнопку DDOS ME
         document.querySelector('.btn-ddos').addEventListener('click', function() {
             let clickCount = 0;
             
-            // Меняем стиль кнопки на активный
             this.style.backgroundColor = "#ff3a3a";
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Атака...';
             
@@ -649,13 +633,10 @@
                     .then(response => {
                         if (response.status === 429 || response.status === 403) {
                             clearInterval(interval);
-                            // Показываем анимацию блокировки
                             document.getElementById('blocked-animation').classList.add('active');
                             
-                            // Обновляем статистику, чтобы отразить блокировку
                             updateStats();
                             
-                            // Возвращаем стиль кнопки
                             this.innerHTML = '<i class="fas fa-bolt"></i> DDOS ME';
                         }
                     })
@@ -666,20 +647,16 @@
                 clickCount++;
                 if (clickCount >= 20) {
                     clearInterval(interval);
-                    // Возвращаем стиль кнопки
                     this.innerHTML = '<i class="fas fa-bolt"></i> DDOS ME';
                 }
             }, 100);
         });
         
-        // Закрытие анимации блокировки
         document.getElementById('close-blocked').addEventListener('click', function() {
             document.getElementById('blocked-animation').classList.remove('active');
         });
         
-        // Инициализация всплывающих подсказок
         document.addEventListener('DOMContentLoaded', function() {
-            // Здесь можно инициализировать bootstrap tooltips если нужно
         });
     </script>
 </body>
