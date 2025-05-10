@@ -197,7 +197,6 @@
     </style>
 </head>
 <body>
-    <!-- Частицы в фоне -->
     <div class="particles-container" id="particles-js"></div>
     
     <div class="container">
@@ -246,7 +245,6 @@
     </div>
     
     <script>
-        // Генерация частиц для фона
         function createParticles() {
             const container = document.getElementById('particles-js');
             const particleCount = 20;
@@ -255,7 +253,6 @@
                 const particle = document.createElement('div');
                 particle.classList.add('particle');
                 
-                // Случайные размеры и позиции
                 const size = Math.random() * 50 + 10;
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
@@ -271,10 +268,8 @@
             }
         }
         
-        // Вызываем создание частиц
         createParticles();
         
-        // Обратный отсчет для 429 страницы
         if (document.getElementById('countdown')) {
             let seconds = 60;
             const countdownElement = document.getElementById('countdown');
