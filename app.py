@@ -48,7 +48,6 @@ def generate_blocked_ip_response(request: Request, message: str = None):
     default_message = "У вас нет прав для доступа к этому ресурсу. Ваш IP был заблокирован системой защиты."
     block_message = message or default_message
     
-    # Для API запросов возвращаем JSON
     if request.url.path.startswith("/api"):
         return JSONResponse(
             status_code=HTTP_403_FORBIDDEN,
@@ -59,7 +58,6 @@ def generate_blocked_ip_response(request: Request, message: str = None):
                 "timestamp": timestamp
             }
         )
-    # Для обычных запросов возвращаем HTML
     else:
         context = {
             "request": request,
@@ -148,7 +146,6 @@ async def root(request: Request, security_token: str = Cookie(None)):
     
     from utils.cookie_storage import cookie_storage
     
-    # Проверяем токен как в памяти, так и в базе данных
     has_valid_cookie = False
     if security_token:
         memory_check = verify_secure_token(security_token, client_ip, user_agent)
@@ -157,17 +154,14 @@ async def root(request: Request, security_token: str = Cookie(None)):
         
         logger.debug(f"Cookie verification result for {client_ip}: {has_valid_cookie} (memory: {memory_check}, db: {db_check})")
         
-        # Если токен валиден в памяти, но не в БД, сохраняем его в БД
         if memory_check and not db_check:
             cookie_storage.store_token(client_ip, user_agent, security_token, COOKIE_MAX_AGE)
             logger.debug(f"Saved valid token to database for IP {client_ip}")
     
-    # Если невалидный токен и подозрительный запрос - отправляем на проверку браузера
     if not has_valid_cookie and is_suspicious_request(request):
         logger.warning(f"Suspicious request detected from {client_ip}")
         return RedirectResponse(url="/browser-check")
-    
-    # Статистика для отображения
+
     stats = {
         "total_requests": total_requests,
         "blocked_attacks": blocked_attacks,
@@ -175,26 +169,22 @@ async def root(request: Request, security_token: str = Cookie(None)):
         "avg_response_time": avg_response_time
     }
     
-    # Создаем ответ
     response = templates.TemplateResponse(
         "index.html", 
         {"request": request, **stats}
     )
     
-    # Если токен невалидный, генерируем новый и сохраняем в БД
     if not has_valid_cookie:
         token = generate_secure_token(client_ip, user_agent)
         
-        # Сохраняем в базе данных
         cookie_storage.store_token(client_ip, user_agent, token, COOKIE_MAX_AGE)
         
-        # Устанавливаем куку
         response.set_cookie(
             key="security_token", 
             value=token, 
             max_age=COOKIE_MAX_AGE, 
             httponly=True, 
-            samesite="lax",  # Изменено с "strict" на "lax" для лучшей работы при редиректах
+            samesite="lax",  
             secure=True
         )
         logger.info(f"Set new security cookie for {client_ip} and saved to database")
@@ -208,7 +198,6 @@ async def browser_check(request: Request, security_token: str = Cookie(None)):
     
     from utils.cookie_storage import cookie_storage
     
-    # Проверяем токен как в памяти, так и в базе данных
     has_valid_cookie = False
     if security_token:
         memory_check = verify_secure_token(security_token, client_ip, user_agent)
@@ -217,37 +206,30 @@ async def browser_check(request: Request, security_token: str = Cookie(None)):
         
         logger.debug(f"Browser check cookie verification: {has_valid_cookie} (memory: {memory_check}, db: {db_check})")
     
-    # Если у пользователя уже есть валидный токен, перенаправляем его на главную
     if has_valid_cookie and security_token:
         logger.info(f"Browser check passed with existing cookie for {client_ip}")
         redirect_response = RedirectResponse(url="/", status_code=303)
         
-        # Восстанавливаем куку в redirect, чтобы она не потерялась при переходе
         redirect_response.set_cookie(
             key="security_token", 
             value=security_token, 
             max_age=COOKIE_MAX_AGE, 
             httponly=True, 
-            samesite="lax",  # Изменено для лучшей работы редиректов
+            samesite="lax",  
             secure=True
         )
         
-        # Дополнительная проверка на случай неинициализированных переменных
         if 'db_check' in locals() and 'memory_check' in locals():
-            # Если токен валиден только в памяти, сохраняем его также в БД
             if not db_check and memory_check:
                 cookie_storage.store_token(client_ip, user_agent, security_token, COOKIE_MAX_AGE)
                 logger.debug(f"Stored memory-valid token to database for {client_ip}")
         
         return redirect_response
     
-    # Если блокировка IP есть в БД, но этот запрос дошел до проверки браузера, 
-    # скорее всего это должен быть разблокирован
     if cookie_storage.is_ip_blocked(client_ip):
         cookie_storage.unblock_ip(client_ip)
         logger.info(f"IP {client_ip} разблокирован во время проверки браузера")
     
-    # Если нет валидной куки, показываем форму проверки браузера
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
     
     return templates.TemplateResponse(
@@ -265,42 +247,31 @@ async def verify_browser(request: Request):
     client_ip = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
     
-    # Сбрасываем счетчик редиректов, так как проверка браузера пройдена
     redirect_count_key = f"redirect_count:{client_ip}"
     local_storage.delete(redirect_count_key)
     
-    # Разблокируем IP, если он был заблокирован
     from utils.cookie_storage import cookie_storage
     if cookie_storage.is_ip_blocked(client_ip):
         cookie_storage.unblock_ip(client_ip)
         logger.info(f"IP {client_ip} разблокирован после успешной проверки браузера")
     
-    # Генерируем новый токен безопасности
     token = generate_secure_token(client_ip, user_agent)
-    
-    # Сохраняем токен в базе данных SQLite
     cookie_storage.store_token(client_ip, user_agent, token, COOKIE_MAX_AGE)
-    
-    # Сохраняем флаг верификации локально - дополнительная защита от редирект-цикла
     verified_key = f"browser_verified:{client_ip}"
     local_storage.setex(verified_key, COOKIE_MAX_AGE, "1")
     
     logger.info(f"Browser verification passed for {client_ip}, security cookie set and stored in database")
-    
-    # Создаем редирект на главную страницу
     redirect_response = RedirectResponse(url="/", status_code=303)
     
-    # Устанавливаем куку безопасности в ответ
     redirect_response.set_cookie(
         key="security_token", 
         value=token, 
         max_age=COOKIE_MAX_AGE, 
         httponly=True, 
-        samesite="lax",      # Изменено с strict на lax для лучшей совместимости с редиректами
+        samesite="lax",     
         secure=True
     )
     
-    # Используем HTTP заголовок для дополнительной проверки (для внутреннего использования)
     redirect_response.headers["X-Browser-Verified"] = "1"
     
     return redirect_response
@@ -341,12 +312,11 @@ async def get_tokens(request: Request):
     
     tokens = cookie_storage.get_all_tokens()
     
-    # Для безопасности не возвращаем сами значения токенов
     safe_tokens = []
     for token in tokens:
         safe_token = token.copy()
         if "token" in safe_token:
-            safe_token["token"] = safe_token["token"][:10] + "..." # Показываем только начало токена
+            safe_token["token"] = safe_token["token"][:10] + "..."
         safe_tokens.append(safe_token)
     
     return {
@@ -370,18 +340,10 @@ async def get_blocks(request: Request):
 
 @app.get("/api/debug/unblock/{ip_address}")
 async def debug_unblock_ip(ip_address: str):
-    """
-    Отладочный эндпоинт для разблокировки IP-адреса (доступен без авторизации)
-    Важно: В продакшене этот эндпоинт следует удалить или защитить!
-    """
     logger.warning(f"Вызван отладочный метод разблокировки для IP: {ip_address}")
-    
     from utils.cookie_storage import cookie_storage
-    
-    # Проверяем, заблокирован ли IP
     is_blocked = cookie_storage.is_ip_blocked(ip_address)
     
-    # Если заблокирован, разблокируем
     if is_blocked:
         cookie_storage.unblock_ip(ip_address)
         return {
@@ -413,7 +375,6 @@ async def health_check(db: Session = Depends(get_db)):
         storage_status = f"unhealthy: {str(e)}"
         logger.error(f"Local storage health check failed: {e}")
     
-    # Проверяем статус хранилища куки
     cookie_db_status = "not_available"
     try:
         from utils.cookie_storage import cookie_storage
