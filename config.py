@@ -47,9 +47,6 @@ BLOCK_DURATION = 1800  # Время блокировки в секундах (30
 WHITELIST_IPS: List[str] = [
     "127.0.0.1",       # localhost
     "::1",             # localhost IPv6
-    "172.31.128.77",   # клиентский IP в Replit
-    "92.43.191.83",    # IP пользователя  
-    "176.123.163.250", # IP пользователя
 ]
 
 # API эндпоинты, которые должны быть доступны всегда
@@ -100,7 +97,6 @@ LOCAL_STORAGE_DB_PATH = "data/local_storage.db"
 
 # Функция для проверки расположения файлов и папок для хранения
 def ensure_data_directories():
-    """Проверяет наличие необходимых директорий и создает их при необходимости"""
     data_dirs = ["data", "logs"]
     for directory in data_dirs:
         os.makedirs(directory, exist_ok=True)
