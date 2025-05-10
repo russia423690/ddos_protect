@@ -270,7 +270,6 @@
     </style>
 </head>
 <body>
-    <!-- Частицы в фоне -->
     <div class="particles-container" id="particles-js"></div>
     
     <div class="container">
@@ -340,7 +339,6 @@
     </div>
     
     <script>
-        // Генерация частиц для фона
         function createParticles() {
             const container = document.getElementById('particles-js');
             const particleCount = 20;
@@ -349,7 +347,6 @@
                 const particle = document.createElement('div');
                 particle.classList.add('particle');
                 
-                // Случайные размеры и позиции
                 const size = Math.random() * 50 + 10;
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
@@ -365,22 +362,18 @@
             }
         }
         
-        // Вызываем создание частиц
         createParticles();
         
-        // Симуляция проверок
         let progress = 0;
         const progressBar = document.getElementById('progressBar');
         const statusEl = document.querySelector('.check-status');
         const continueBtn = document.getElementById('btnContinue');
         const securityInfo = document.getElementById('securityInfo');
         
-        // Проверка доступности JavaScript
         function checkJavaScript() {
-            return true; // Если скрипт выполняется, JavaScript доступен
+            return true; 
         }
         
-        // Проверка Cookie
         function checkCookies() {
             try {
                 document.cookie = "testcookie=1; SameSite=Strict; Secure";
@@ -392,7 +385,6 @@
             }
         }
         
-        // Функция для обновления состояния проверки
         function updateCheckStatus(checkId, status) {
             const checkItem = document.getElementById(checkId);
             const icon = checkItem.querySelector('i');
@@ -409,13 +401,11 @@
             }
         }
         
-        // Функция для обновления прогресса
         function updateProgress(value) {
             progress = value;
             progressBar.style.width = `${progress}%`;
         }
         
-        // Симуляция последовательной проверки
         setTimeout(() => {
             updateProgress(20);
             updateCheckStatus('check1', 'success');
@@ -438,16 +428,13 @@
                             updateProgress(100);
                             updateCheckStatus('check5', 'success');
                             
-                            // Проверка пройдена
                             statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: #4cd137;"></i> Проверка завершена успешно';
                             continueBtn.style.display = 'inline-block';
                             
-                            // Если есть проблемы, показываем информацию о безопасности
                             if (!cookieCheck) {
                                 securityInfo.style.display = 'block';
                             }
                             
-                            // После успешной проверки отправляем POST запрос для установки защищенной куки
                             fetch('/verify-browser', {
                                 method: 'POST',
                                 headers: {
@@ -457,10 +444,8 @@
                             })
                             .then(response => {
                                 if (response.ok) {
-                                    // Если успешно, продолжаем
                                     console.log('Верификация успешна, продолжаем...');
                                     
-                                    // Автоматический редирект через 3 секунды
                                     setTimeout(() => {
                                         window.location.href = '/';
                                     }, 3000);
@@ -479,10 +464,8 @@
             }, 1000);
         }, 1000);
         
-        // Обработчик клика на кнопку продолжить
         document.getElementById('btnContinue').addEventListener('click', function(e) {
             e.preventDefault();
-            // Отправляем POST запрос для установки защищенной куки
             fetch('/verify-browser', {
                 method: 'POST',
                 headers: {
@@ -492,7 +475,6 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // Если успешно, переходим на главную
                     window.location.href = '/';
                 } else {
                     console.error('Ошибка верификации');
