@@ -3,21 +3,13 @@ import sys
 from utils.local_storage import LocalStorage
 
 def reset_blocked_ip(ip_address):
-    """Сбросить блокировку IP-адреса в локальном хранилище"""
     storage = LocalStorage()
-    
-    # Удаление ключа блокировки
     block_key = f"block:{ip_address}"
     storage.delete(block_key)
-    
-    # Сброс счетчика критических аномалий
     critical_counter_key = f"critical_anomalies:{ip_address}"
     storage.delete(critical_counter_key)
-    
-    # Сброс счетчика превышения лимита запросов
     rate_limit_key = f"ratelimit:{ip_address}"
     storage.delete(rate_limit_key)
-    
     print(f"Блокировка IP-адреса {ip_address} сброшена")
 
 if __name__ == "__main__":
